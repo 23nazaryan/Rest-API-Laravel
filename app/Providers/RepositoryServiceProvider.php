@@ -2,14 +2,16 @@
 
 namespace App\Providers;
 
-use App\Http\Controllers\Api\BlogController;
-use App\Http\Controllers\Api\NewsController;
-use App\Repositories\BlogRepository;
-use App\Repositories\Interfaces\CrudRepositoryInterface;
-use App\Repositories\Interfaces\UserRepositoryInterface;
-use App\Repositories\NewsRepository;
+use App\Services\UserService;
+use App\Services\LikeService;
+use App\Services\ArticleService;
+use App\Services\CommentService;
+use App\Repositories\LikeRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\CommentRepository;
+use App\Repositories\ArticleRepository;
 use Illuminate\Support\ServiceProvider;
+use App\Repositories\Contracts\CRUDRepositoryInterface;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -18,26 +20,24 @@ class RepositoryServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        // User
+        $this->app->when(UserService::class)
+            ->needs(CRUDRepositoryInterface::class)
+            ->give(UserRepository::class);
 
-        $this->app->when(BlogController::class)
-            ->needs(CrudRepositoryInterface::class)
-            ->give(function () {
-                return new BlogRepository();
-            });
+        // Article
+        $this->app->when(ArticleService::class)
+            ->needs(CRUDRepositoryInterface::class)
+            ->give(ArticleRepository::class);
 
-        $this->app->when(NewsController::class)
-            ->needs(CrudRepositoryInterface::class)
-            ->give(function () {
-                return new NewsRepository();
-            });
-    }
+        // Comment
+        $this->app->when(CommentService::class)
+            ->needs(CRUDRepositoryInterface::class)
+            ->give(CommentRepository::class);
 
-    /**
-     * Bootstrap services.
-     */
-    public function boot(): void
-    {
-        //
+        // Like
+        $this->app->when(LikeService::class)
+            ->needs(CRUDRepositoryInterface::class)
+            ->give(LikeRepository::class);
     }
 }

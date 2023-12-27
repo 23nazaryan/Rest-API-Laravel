@@ -2,30 +2,30 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Facades\UserFacade;
+use Illuminate\Http\Response;
+use App\Facades\AttachmentFacade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ProfileUpdateRequest;
-use App\Repositories\Interfaces\UserRepositoryInterface;
-use App\Services\UserService;
 
 class ProfileController extends Controller
 {
-    public function __construct(
-        private readonly UserRepositoryInterface $userRepository,
-        private readonly UserService             $userService
-    ) {}
-
     /**
      * Update the user's profile information.
      *
      * @param ProfileUpdateRequest $request
-     * @return void
+     * @return Response
      */
-    public function update(ProfileUpdateRequest $request): void
+    public function update(ProfileUpdateRequest $request): Response
     {
-        $this->userRepository->update($request->user(), $request->validated());
+        $userId = $request->user()->id;
+        UserFacade::update($userId, $request->validated());
 
         if ($request->file('attachment')) {
-            $this->userService->uploadAttachment($request->user(), $request->file('attachment'));
+            $attachment = AttachmentFacade::uploadFile($request->file('attachment'));
+            UserFacade::assignAttachment($userId, $attachment);
         }
+
+        return response()->noContent();
     }
 }

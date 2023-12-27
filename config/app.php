@@ -170,7 +170,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        \App\Providers\RepositoryServiceProvider::class
+        App\Providers\RepositoryServiceProvider::class,
+        App\Providers\FacadeServiceProvider::class
     ])->toArray(),
 
     /*
@@ -185,7 +186,10 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        // 'Example' => App\Facades\Example::class,
-    ])->toArray(),
-
+        'Article' => App\Facades\ArticleFacade::class,
+        'Comment' => App\Facades\CommentFacade::class,
+        'Like' => App\Facades\LikeFacade::class,
+        'User' => App\Facades\UserFacade::class,
+        'Attachment' => App\Facades\AttachmentFacade::class,
+    ])->toArray()
 ];

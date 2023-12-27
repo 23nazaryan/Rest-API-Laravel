@@ -1,32 +1,21 @@
 <?php
 
-use App\Http\Controllers\Api\BlogController;
-use App\Http\Controllers\Api\DeleteCommentController;
-use App\Http\Controllers\Api\NewsController;
 use Illuminate\Support\Facades\Route;
-
-Route::apiResource('blog', BlogController::class);
-Route::apiResource('news', NewsController::class);
+use App\Http\Controllers\Api\LikeController;
+use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\ArticleController;
 
 Route::group(['middleware' => ['auth:sanctum', 'verified']], function () {
-    //Blog Comment
-    Route::get('/blog/{id}/comment', [BlogController::class, 'getComments']);
-    Route::post('/blog/{id}/comment', [BlogController::class, 'addComment']);
-    //Blog Like
-    Route::get('/blog/{id}/like', [BlogController::class, 'getLikes']);
-    Route::post('/blog/{id}/like', [BlogController::class, 'addLike']);
-    Route::delete('/blog/{id}/like', [BlogController::class, 'removeLike']);
+    // Article
+    Route::apiResource('articles', ArticleController::class);
 
-    //News Comment
-    Route::get('/news/{id}/comment', [NewsController::class, 'getComments']);
-    Route::post('/news/{id}/comment', [NewsController::class, 'addComment']);
-    //News Like
-    Route::get('/news/{id}/like', [NewsController::class, 'getLikes']);
-    Route::post('/news/{id}/like', [NewsController::class, 'addLike']);
-    Route::delete('/news/{id}/like', [NewsController::class, 'removeLike']);
+    // Comment
+    Route::apiResource('comments', CommentController::class);
 
-    //Comment delete
-    Route::delete('/comment/{id}', [DeleteCommentController::class, 'deleteComment']);
+    // Like
+    Route::get('likes', [LikeController::class, 'index']);
+    Route::post('likes', [LikeController::class, 'store']);
+    Route::delete('likes/{like}', [LikeController::class, 'destroy']);
 });
 
 require __DIR__ . '/auth.php';

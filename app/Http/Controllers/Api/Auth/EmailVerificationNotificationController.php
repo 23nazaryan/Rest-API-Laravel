@@ -2,27 +2,24 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
-use App\Services\UserService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use App\Facades\UserFacade;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 
 class EmailVerificationNotificationController extends Controller
 {
-    public function __construct(private readonly UserService $userService) {}
-
     /**
      * Send a new email verification notification.
      */
     public function store(Request $request): JsonResponse|RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(RouteServiceProvider::HOME);
+            return response()->json(['status' => 'Verification has already been carried out.']);
         }
 
-        $this->userService->setEmailVerificationCode($request->user());
+        UserFacade::setEmailVerificationCode($request->user()->id);
         $request->user()->sendEmailVerificationNotification();
 
         return response()->json(['status' => 'Verification code sent.']);

@@ -2,55 +2,76 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Traits\AttachmentTrait;
 use Carbon\Carbon;
-use Illuminate\Http\UploadedFile;
+use App\Models\Attachment;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use App\Repositories\Contracts\CRUDRepositoryInterface;
 
 class UserService
 {
-    use AttachmentTrait;
+    public function __construct(private readonly CRUDRepositoryInterface $repository)
+    {
+    }
+
+    public function getById(int $id): Model|Builder
+    {
+        return $this->repository->getById($id);
+    }
+
+    public function create(array $requestData): Model|Builder
+    {
+        return $this->repository->create($requestData);
+    }
+
+    public function update(int $id, array $requestData): bool
+    {
+        return $this->repository->update($id, $requestData);
+    }
 
     /**
      * Set the user's email verification code.
      *
-     * @param User $user
-     * @return void
+     * @param int $id
+     * @return bool
      */
-    public function setEmailVerificationCode(User $user): void
+    public function setEmailVerificationCode(int $id): bool
     {
-        $user->email_verification_code = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $user->email_verification_expires_at = Carbon::now()->addMinutes(30);
-        $user->save();
+        return $this->repository->update($id, [
+            'email_verification_code' => str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT),
+            'email_verification_expires_at' => Carbon::now()->addMinutes(30)
+        ]);
     }
 
     /**
      * Check the user's email verification code.
      *
-     * @param User $user
+     * @param int $id
      * @param array $requestData
      * @return bool
      */
-    public function checkEmailVerification(User $user, array $requestData): bool
+    public function checkEmailVerification(int $id, array $requestData): bool
     {
+        $user = $this->repository->getById($id);
         if ($user->email_verification_code != $requestData['email_verification_code']) return false;
 
-        $user->email_verification_code = null;
-        $user->email_verification_expires_at = null;
-        return $user->save();
+        return $this->repository->update($id, [
+            'email_verification_code' => null,
+            'email_verification_expires_at' => null
+        ]);
     }
 
     /**
      * Upload and save the user's attached file.
      *
-     * @param User $user
-     * @param UploadedFile $file
-     * @return void
+     * @param int $id
+     * @param Attachment $attachment
+     * @return Attachment
      */
-    public function uploadAttachment(User $user, UploadedFile $file): void
+    public function assignAttachment(int $id, Attachment $attachment): Attachment
     {
-        $attachment = $this->uploadFile($file);
+        $user = $this->repository->getById($id);
         $user->attachment()->delete();
-        $user->attachment()->save($attachment);
+        return $user->attachment()->save($attachment);
     }
 }

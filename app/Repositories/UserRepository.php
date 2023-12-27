@@ -3,12 +3,21 @@
 namespace App\Repositories;
 
 use App\Models\User;
-use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
+use App\Repositories\Contracts\CRUDRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class UserRepository implements UserRepositoryInterface
+class UserRepository implements CRUDRepositoryInterface
 {
+    public function __construct(private readonly User $model)
+    {
+    }
+
+    public function getAll(array $requestData): LengthAwarePaginator
+    {
+    }
+
     /**
      * Insert the user's profile information.
      *
@@ -17,24 +26,35 @@ class UserRepository implements UserRepositoryInterface
      */
     public function create(array $requestData): Builder|Model
     {
-        return User::query()->create($requestData);
+        return $this->model->newQuery()
+            ->create($requestData);
+    }
+
+    public function getById(int $id): Builder|Model
+    {
+        return $this->model->newQuery()
+            ->findOrFail($id);
     }
 
     /**
      * Update the user's profile information.
      *
-     * @param User $user
+     * @param int $id
      * @param array $requestData
-     * @return void
+     * @return bool
      */
-    public function update(User $user, array $requestData): void
+    public function update(int $id, array $requestData): bool
     {
-        $user->fill($requestData);
+        $user = $this->getById($id);
 
         if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+            $requestData['email_verified_at'] = null;
         }
 
-        $user->save();
+        return $user->update($requestData);
+    }
+
+    public function delete(int $id): bool
+    {
     }
 }

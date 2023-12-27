@@ -2,22 +2,15 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Facades\UserFacade;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Events\Registered;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\User\UserResource;
-use App\Repositories\Interfaces\UserRepositoryInterface;
-use App\Services\UserService;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 
 class RegisteredUserController extends Controller
 {
-    public function __construct(
-        private readonly UserRepositoryInterface $userRepository,
-        private readonly UserService             $userService
-    ) {}
-
     /**
      * Handle an incoming registration request.
      *
@@ -26,8 +19,8 @@ class RegisteredUserController extends Controller
      */
     public function store(RegisterRequest $request): UserResource
     {
-        $user = $this->userRepository->create($request->validated());
-        $this->userService->setEmailVerificationCode($user);
+        $user = UserFacade::create($request->validated());
+        UserFacade::setEmailVerificationCode($user->id);
         event(new Registered($user));
         Auth::login($user);
         return new UserResource($user);

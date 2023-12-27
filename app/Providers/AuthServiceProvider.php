@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -27,7 +26,7 @@ class AuthServiceProvider extends ServiceProvider
         VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
             return (new MailMessage)
                 ->subject(Lang::get('Verify Email Address'))
-                ->line(Lang::get('Here is your one-time email verification code - ' . $notifiable->email_verification_code . '.'));
+                ->line(Lang::get('Here is your one-time email verification code - ' . $notifiable->fresh()->email_verification_code . '.'));
         });
     }
 }
